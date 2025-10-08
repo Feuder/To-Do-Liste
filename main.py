@@ -66,11 +66,12 @@ def todo_hinzufuegen():
         text = neue_Aufgabe.get().strip()
         if not text:
             return
+        print("ABSENDEN:", repr(text))             # 1
         todo = ToDo.TODO_ers(text=text)
         ToDos.append(todo)
         todo.Todos_speichern()
         neue_Todo.destroy()
-    
+
     absenden_btn = ttk.Button(
         neue_Todo, text="Fertig",
         command=lambda: Todo_absenden()
@@ -109,17 +110,26 @@ class ToDo:
     
     def Todos_speichern(self, pfad="todo.json"):
         try:
-            with open(pfad,"r", encoding="utf-8") as f:
-                daten = json.load(f)
-                print("Datei wurde gefunden!")
+            with open(pfad, "r", encoding="utf-8") as f:
+                try:
+                    daten = json.load(f)
+                except json.JSONDecodeError:
+                    daten = []
         except FileNotFoundError:
-            print("Es wurde keine Datei gefunden!")
             daten = []
 
-        daten.append(self.__dict__)
+        daten.append(self.to_dict())
+        print("VOR DUMP:", len(daten), daten[-1])   # 2
 
-        with open(pfad, "w", encoding="utf-8") as f:
-            json.dump(daten, f, ensure_ascii=False, indent=2)
-            print("geschrieben:", len(daten), "cwd:", os.getcwd(), "pfad:", os.path.abspath(pfad))
+        try:
+            with open(pfad, "w", encoding="utf-8") as f:
+                json.dump(daten, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print("WRITE FEHLER:", e)               # 3
+            return
+
+        with open(pfad, "r", encoding="utf-8") as f:
+            inhalt = f.read()
+        print("NACH DUMP BYTES:", len(inhalt))
 
 main()
