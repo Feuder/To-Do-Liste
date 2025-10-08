@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+import json
 
 add_Window = tk.Tk()
 add_Window.title("TO DOs")
@@ -38,6 +39,7 @@ def main():
     erl_todos_label.grid(row=0, column=0, sticky="s", padx=10, pady=10)
 
     neue_ToDos_btn = ttk.Button(
+        add_Window,
         text=("Neue Frage hinzufügen"),
         command=lambda: todo_hinzufuegen()
     )
@@ -70,9 +72,11 @@ def todo_hinzufuegen():
             Fragen.append(Todo)
         neue_Todo.destroy()
 
-        for i in Fragen:
-            print(i)
+        todos_hochladen()
 
 
+def todos_hochladen(Fragen, path="todo.json"):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(Fragen, f, ensure_ascii=False, indent=2)
 
 main()
