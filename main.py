@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 add_Window = tk.Tk()
 add_Window.title("TO DOs")
-add_Window.geometry("520x500")
+add_Window.geometry("520x450")
 add_Window.configure(bg="gray20")
 
 ToDos = []
@@ -66,7 +66,6 @@ def todo_hinzufuegen():
         text = neue_Aufgabe.get().strip()
         if not text:
             return
-        print("ABSENDEN:", repr(text))             # 1
         todo = ToDo.TODO_ers(text=text)
         ToDos.append(todo)
         todo.Todos_speichern()
@@ -119,17 +118,19 @@ class ToDo:
             daten = []
 
         daten.append(self.to_dict())
-        print("VOR DUMP:", len(daten), daten[-1])   # 2
 
         try:
             with open(pfad, "w", encoding="utf-8") as f:
                 json.dump(daten, f, ensure_ascii=False, indent=2)
         except Exception as e:
-            print("WRITE FEHLER:", e)               # 3
+            print("WRITE FEHLER:", e)               
             return
 
-        with open(pfad, "r", encoding="utf-8") as f:
-            inhalt = f.read()
-        print("NACH DUMP BYTES:", len(inhalt))
-
+    def Todos_laden(pfad="todo.json"):
+        try:
+            with open(pfad, "r", encoding="utf-8") as f:
+                daten = json.load(f)
+            return [ToDo(**todo) for todo in daten]
+        except FileNotFoundError:
+            return[]
 main()
