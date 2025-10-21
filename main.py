@@ -13,9 +13,18 @@ add_Window.configure(bg="gray20")
 ToDos = []
 
 def main():
+    ToDos = ToDo.Todos_laden()
+    Startseite(ToDos)
+
+def Startseite(ToDos):
+   
     style = ttk.Style()
     style.configure("Todo.TLabelframe", background="#E0E0E0")
     style.configure("Todo.TLabelframe.Label", background="#E0E0E0") 
+    style.configure("Todo.TCheckbutton",
+                    background="#E0E0E0",
+                    foreground="black",
+                    focuscolor="#E0E0E0")
 
     Todos_rahmen = ttk.LabelFrame(add_Window, text="Zu erledigende ToDos", style="Todo.TLabelframe", padding=(10, 10))
     Todos_rahmen.grid(row=0, column=0, sticky="w", padx=10, pady=10)
@@ -27,29 +36,35 @@ def main():
     Erl_Todos_rahmen.config(width=240, height=360)
     Erl_Todos_rahmen.grid_propagate(False)
 
-    global zu_erld_todos_label
-    zu_erld_todos_label = ttk.Label(
-        Todos_rahmen,
-        wraplength=250, justify="left"
-    )
-    zu_erld_todos_label.grid(row=0, column=0, sticky="w", padx=10, pady=10)
-
-    erl_todos_label = ttk.Label(
-        Erl_Todos_rahmen,
-        wraplength=250, justify="right"
-    )
-    erl_todos_label.grid(row=0, column=0, sticky="s", padx=10, pady=10)
+    Todos_laden(Todos_rahmen, ToDos)
 
     neue_ToDos_btn = ttk.Button(
         add_Window,
         text=("Neue Frage hinzufügen"),
-        command=lambda: todo_hinzufuegen()
+        command=lambda: todo_hinzufuegen(Todos_rahmen)
     )
     neue_ToDos_btn.grid(row=3, column=0, padx=10, pady=10)
 
     add_Window.mainloop()
 
-def todo_hinzufuegen():
+def Todos_laden(Todos_rahmen, ToDos):
+
+    row_zu_erl = 1
+    row_erl = 1
+
+    for i in ToDos:
+        if i.done:
+            zu_erld_todos_checkbutton = ttk.Checkbutton(Todos_rahmen, text=i.text, style="Todo.TCheckbutton")
+            zu_erld_todos_checkbutton.grid(row=row_zu_erl, column=0, sticky="w", padx=10, pady=2)
+            row_erl += 1
+        else:
+            zu_erld_todos_checkbutton = ttk.Checkbutton(Todos_rahmen, text=i.text, style="Todo.TCheckbutton")
+            zu_erld_todos_checkbutton.grid(row=row_zu_erl, column=0, sticky="w", padx=10, pady=2)
+            row_zu_erl += 1
+
+
+
+def todo_hinzufuegen(Todos_rahmen):
     neue_Todo = tk.Toplevel(add_Window)
     neue_Todo.title("Neue ToDo erstellen")
     neue_Todo.geometry("250x150")
@@ -62,6 +77,13 @@ def todo_hinzufuegen():
     neue_Aufgabe.grid(row=1, column=0,padx=10, pady=10, sticky="ew")
     neue_Todo.columnconfigure(0, weight=1)
 
+    absenden_btn = ttk.Button(
+        neue_Todo, text="Fertig",
+        command=lambda: Todo_absenden()
+        )
+    absenden_btn.grid(row=2, column=0, padx=10, pady=10)
+
+
     def Todo_absenden():
         text = neue_Aufgabe.get().strip()
         if not text:
@@ -69,13 +91,8 @@ def todo_hinzufuegen():
         todo = ToDo.TODO_ers(text=text)
         ToDos.append(todo)
         todo.Todos_speichern()
+        Todos_laden(Todos_rahmen)
         neue_Todo.destroy()
-
-    absenden_btn = ttk.Button(
-        neue_Todo, text="Fertig",
-        command=lambda: Todo_absenden()
-        )
-    absenden_btn.grid(row=2, column=0, padx=10, pady=10)
 
 
 class ToDo:
@@ -122,8 +139,7 @@ class ToDo:
         try:
             with open(pfad, "w", encoding="utf-8") as f:
                 json.dump(daten, f, ensure_ascii=False, indent=2)
-        except Exception as e:
-            print("WRITE FEHLER:", e)               
+        except Exception as e:             
             return
 
     def Todos_laden(pfad="todo.json"):
